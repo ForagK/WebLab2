@@ -8,7 +8,7 @@ namespace WebLab2.DataBase
         public DbSet<Service> Services { get; set; }
         public DbSet<Incident> Incidents { get; set; }
         public DbSet<Admin> Admins { get; set; }
-
+        public DbSet<MonitoringLog> Logs { get; set; }
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     }
 }

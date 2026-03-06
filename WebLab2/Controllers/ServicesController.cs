@@ -8,17 +8,17 @@ namespace WebLab2.Controllers
     [ApiController]
     public class ServicesController : ControllerBase
     {
-        private readonly IServicesService _service;
+        private readonly IServiceRepository _service;
 
-        public ServicesController(IServicesService service)
+        public ServicesController(IServiceRepository service)
         {
             _service = service;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateService(Service service)
+        public async Task<IActionResult> CreateService(ServiceDto serviceDto)
         {
-            var _service = await this._service.CreateService(service);
+            var _service = await this._service.CreateService(serviceDto);
             return base.CreatedAtAction("GetById", new { id = _service.Id }, _service);
         }
 
@@ -55,9 +55,31 @@ namespace WebLab2.Controllers
             return Ok(serviceWithActions);
         }
 
-        [HttpGet("{id}/logs")]
-        public IActionResult GetLogs(int id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateService(int id, ServiceDto serviceDto)
         {
+            var service = await _service.UpdateService(id, serviceDto);
+            if (service == null)
+                return NotFound();
+            return Ok(service);
+        }
+
+        [HttpGet("{id}/details")]
+        public async Task<IActionResult> GetServiceDetails(int id)
+        {
+            var serviceDetails = await _service.GetServiceDetails(id);
+            if (serviceDetails == null)
+                return NotFound();
+            return Ok(serviceDetails);
+        }
+
+        [HttpGet("{id}/alert")]
+        public async Task<IActionResult> SendAlert(int id)
+        {
+            for(int i = 0; i < 5; i++)
+            {
+                _service.TrySendAlert(id);
+            }
             return Ok();
         }
     }
