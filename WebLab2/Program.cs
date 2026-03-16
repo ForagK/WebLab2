@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using WebLab2.DataBase;
+using WebLab2.Hubs;
 using WebLab2.Interfaces;
 using WebLab2.Services;
 
@@ -34,6 +35,8 @@ builder.Services.AddScoped<ILogService>(sp =>
     return new CachedLogService(repo, redis);
 });
 
+builder.Services.AddHostedService<UptimeMonitorWorker>();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -42,10 +45,16 @@ builder.Services.AddHttpClient("LocalApi", client =>
     client.BaseAddress = new Uri("https://localhost:7056/");
 });
 
+builder.Services.AddSignalR();
+builder.Services.AddRazorPages();
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-
 app.MapControllers();
+app.UseStaticFiles();
+app.MapRazorPages();
+
+app.MapHub<MonitoringHub>("/hubs/monitoring");
 
 app.Run();

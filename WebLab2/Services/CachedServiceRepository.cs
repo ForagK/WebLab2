@@ -41,8 +41,6 @@ namespace WebLab2.Services
             return serviceDetails;
         }
 
-
-
         public async Task<Service> CreateService(ServiceDto serviceDto)
         {
             return await _service.CreateService(serviceDto);
@@ -58,6 +56,16 @@ namespace WebLab2.Services
             return await _service.GetService(id);
         }
 
+        public async Task<List<Service>> GetServices()
+        {
+            return await _service.GetServices();
+        }
+
+        public async Task<List<int>> GetServiceIds()
+        {
+            return await _service.GetServiceIds();
+        }
+
         public async Task<Service?> UpdateService(int id, ServiceDto serviceDto)
         {
             var service = await _service.UpdateService(id, serviceDto);
@@ -66,6 +74,7 @@ namespace WebLab2.Services
             }
             return service;
         }
+
         public async void TrySendAlert(int serviceId)
         {
             string key = $"alert:lock:{serviceId}";
@@ -81,7 +90,6 @@ namespace WebLab2.Services
             {
                 Console.WriteLine("Alert suppressed (cooldown).");
             }
-
         }
     }
 }

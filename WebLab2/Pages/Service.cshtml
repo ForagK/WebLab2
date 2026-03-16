@@ -1,0 +1,83 @@
+﻿@page "{id:int}"
+@model WebLab2.Pages.ServiceModel
+
+@{
+    var statusColor = Model.ServiceDetails.ServiceStatus == "Up" ? "green" : "red";
+}
+
+<table style="border:1px solid">
+    <thead>
+        <tr style="border:1px solid">
+            <th>Id</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Admin Name</th>
+            <th>Admin Email</th>
+            <th>Time since last incident</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr data-id="@Model.ServiceDetails.ServiceId">
+            <td style="border:1px solid">@Model.ServiceDetails.ServiceId</td>
+            <td style="border:1px solid">@Model.ServiceDetails.ServiceName</td>
+            <td class="status-cell" style="border:1px solid; color:@statusColor">
+                @Model.ServiceDetails.ServiceStatus
+            </td>
+            <td style="border:1px solid">@Model.ServiceDetails.AdminName</td>
+            <td style="border:1px solid">@Model.ServiceDetails.AdminEmail</td>
+            <td style="border:1px solid">@Model.ServiceDetails.TimeSinceIncident</td>
+        </tr>
+    </tbody>
+</table>
+
+<script src="~/lib/signalr/signalr.js"></script>
+
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/hubs/monitoring")
+        .withAutomaticReconnect([0, 2000, 10000, 30000])
+        .build();
+
+    connection.on("ReceiveStatusUpdate", (serviceId, status, responseTime) => {
+        updateUi(serviceId, status);
+    })
+
+    connection.onreconnecting(error => {
+        document.body.style.backgroundColor = "orange";
+    })
+
+    connection.onreconnected(connectionId => {
+        document.body.style.backgroundColor = "white";
+        joinGroup();
+    })
+
+    async function start(){
+         await connection.start();
+         joinGroup();
+    }
+
+    async function joinGroup(){
+        await connection.invoke("JoinServiceGroup", @Model.ServiceDetails.ServiceId)
+    }
+
+    function updateUi(serviceId, status){
+
+        if (status != "Up" && status !="Down")
+            return
+
+        console.log("Updated")
+
+        const row = document.querySelector(`tr[data-id='${serviceId}']`);
+        
+        if (!row)
+            return;
+
+        const statusCell = row.querySelector('.status-cell');
+        statusCell.textContent = status;
+
+        status == "Up" ? statusCell.style.color = "green" : statusCell.style.color = "red"
+    }
+
+    start();
+</script>

@@ -1,0 +1,75 @@
+﻿@page
+@model WebLab2.Pages.DashboardModel
+@{
+}
+<table style="border: 1px solid">
+    <thead>
+        <tr style="border: 1px solid">
+            <th>Id</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Response Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var service in Model.Services)
+        {
+            var statusColor = service.Status == "Up" ? "green" : "red";
+
+            <tr data-id="@service.Id">
+                <td style="border: 1px solid">@service.Id</td>
+                <td style="border: 1px solid">
+                    <a href="/Service/@service.Id">@service.Name</a>
+                    </td>
+                <td style="border: 1px solid; color:@statusColor;" class="status-cell">@service.Status</td>
+                <td style="border: 1px solid" class="response-time-cell">0</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script src="~/lib/signalr/signalr.js"></script>
+
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/hubs/monitoring")
+        .withAutomaticReconnect([0, 2000, 10000, 30000])
+        .build();
+
+    connection.on("ReceiveStatusUpdate", (serviceId, status, responseTime) => {
+        updateUi(serviceId, status, responseTime);
+    })
+
+    connection.onreconnecting(error => {
+        document.body.style.backgroundColor = "orange";
+    })
+
+        connection.onreconnected(connectionId => {
+        document.body.style.backgroundColor = "white";
+    })
+
+    async function start(){
+         await connection.start();
+    }
+
+    function updateUi(serviceId, status, responseTime){
+
+        if (status != "Up" && status !="Down")
+            return
+
+        const row = document.querySelector(`tr[data-id='${serviceId}']`);
+        
+        if (!row)
+            return;
+
+        const statusCell = row.querySelector('.status-cell');
+        statusCell.textContent = status;
+
+        status == "Up" ? statusCell.style.color = "green" : statusCell.style.color = "red"
+
+        const responseTimeCell = row.querySelector('.response-time-cell');
+        responseTimeCell.textContent = responseTime;
+    }
+
+    start();
+</script>

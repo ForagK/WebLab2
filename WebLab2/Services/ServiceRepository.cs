@@ -40,6 +40,12 @@ namespace WebLab2.Services
             return true;
         }
 
+        public async Task<List<Service>> GetServices()
+        {
+            var services = await _context.Services.ToListAsync();
+            return services;
+        }
+
         public async Task<Service?> GetService(int id)
         {
             var service = await _context.Services.FindAsync(id);
@@ -93,9 +99,12 @@ namespace WebLab2.Services
                 };
             }
 
-            Thread.Sleep(4000);
-
             return serviceDetails;
+        }
+
+        public async Task<List<int>> GetServiceIds()
+        {
+            return _context.Services.Select(s => s.Id).ToList();
         }
         public async void TrySendAlert(int serviceId) {}
     }
