@@ -1,0 +1,20 @@
+﻿@page
+@model WebLab2.Pages.LogStreamModel
+@{
+}
+<ul>
+
+</ul>
+
+<script>
+    const source = new EventSource('/api/stream/time');
+  
+    source.addEventListener("error_log", e => {
+        console.error(e.lastEventId, "CRITICAL",  JSON.parse(e.data));
+        document.body.style.backgroundColor = '#ffcccc';
+    });
+
+    source.addEventListener("info_log", e => {
+        console.log(e.lastEventId, "INFO:", JSON.parse(e.data));
+    });
+</script>
