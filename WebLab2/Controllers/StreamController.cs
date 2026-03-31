@@ -45,15 +45,15 @@ namespace WebLab2.Controllers
                 {
                     var data = await _service.GetLog();
 
-                    await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(data), ct);
-                    await Response.Body.FlushAsync(ct);
-                    await Task.Delay(1000, ct);
-
                     if (_service.CurrentId % 10 == 0 && _service.CurrentId != 0)
                     {
                         Console.WriteLine("testing disconnect");
                         break;
                     }
+
+                    await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(data), ct);
+                    await Response.Body.FlushAsync(ct);
+                    await Task.Delay(1000, ct);
                 }
             }
             catch (OperationCanceledException)
