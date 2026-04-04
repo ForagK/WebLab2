@@ -1,11 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using WebLab2.Models;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
+using Scalar.AspNetCore;
+using System.Net.NetworkInformation;
 using WebLab2.Interfaces;
+using WebLab2.Models;
 
 namespace WebLab2.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
+    [ApiVersion("1.0", Deprecated = true)]
+    [ApiVersion("2.0")]
     public class ServicesController : ControllerBase
     {
         private readonly IServiceRepository _service;
@@ -31,28 +36,53 @@ namespace WebLab2.Controllers
             return NoContent();
         }
 
+        //[HttpGet("{id}")]
+        //public async Task<IActionResult> GetById(int id)
+        //{
+        //    var service = await _service.GetService(id);
+        //    if (service == null)
+        //        return NotFound();
+
+        //    ServiceWithActions serviceWithActions = new ServiceWithActions
+        //    {
+        //        Id = service.Id,
+        //        Name = service.Name,
+        //        Status = service.Status,
+        //        AdminId = service.AdminId,
+        //        Links = new List<ActionLink>
+        //        {
+        //            new ActionLink { Rel = "self", Href = Url.Action("GetById", new { service.Id })!, Method = "GET" },
+        //            new ActionLink { Rel = "delete", Href = Url.Action("DeleteService", new { service.Id })!, Method = "DELETE" },
+        //            new ActionLink { Rel = "log", Href = Url.Action("GetLogs", new { service.Id })!, Method = "GET" },
+        //        }
+        //    };
+
+        //    return Ok(serviceWithActions);
+        //}
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [MapToApiVersion("1.0")]
+        [Stability(Stability.Deprecated)]
+        [Obsolete()]
+        public async Task<IActionResult> GetStatusV1(int id)
+        {
+            Response.Headers.Append("X-Sunset", "2026-12-31");
+
+            var service = await _service.GetService(id);
+            if (service == null)
+                return NotFound();
+
+            return Ok(service.Status);
+        }
+        [HttpGet("{id}")]
+        [MapToApiVersion("2.0")]
+        public async Task<IActionResult> GetStatusV2(int id)
         {
             var service = await _service.GetService(id);
             if (service == null)
                 return NotFound();
 
-            ServiceWithActions serviceWithActions = new ServiceWithActions
-            {
-                Id = service.Id,
-                Name = service.Name,
-                Status = service.Status,
-                AdminId = service.AdminId,
-                Links = new List<ActionLink>
-                {
-                    new ActionLink { Rel = "self", Href = Url.Action("GetById", new { service.Id })!, Method = "GET" },
-                    new ActionLink { Rel = "delete", Href = Url.Action("DeleteService", new { service.Id })!, Method = "DELETE" },
-                    new ActionLink { Rel = "log", Href = Url.Action("GetLogs", new { service.Id })!, Method = "GET" },
-                }
-            };
-
-            return Ok(serviceWithActions);
+            return Ok(new { status = service.Status, ping = Random.Shared.NextInt64(1000), lastCheck = DateTime.Now.AddDays(-1) });
         }
 
         [HttpPut("{id}")]
