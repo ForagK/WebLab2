@@ -9,7 +9,7 @@ namespace WebLab2.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [ApiVersion("1.0", Deprecated = true)]
+    [ApiVersion("1.0")]
     [ApiVersion("2.0")]
     public class ServicesController : ControllerBase
     {
@@ -62,18 +62,16 @@ namespace WebLab2.Controllers
 
         [HttpGet("{id}")]
         [MapToApiVersion("1.0")]
-        [Stability(Stability.Deprecated)]
-        [Obsolete()]
+        [Obsolete]
         public async Task<IActionResult> GetStatusV1(int id)
         {
-            Response.Headers.Append("X-Sunset", "2026-12-31");
-
             var service = await _service.GetService(id);
             if (service == null)
                 return NotFound();
 
             return Ok(service.Status);
         }
+
         [HttpGet("{id}")]
         [MapToApiVersion("2.0")]
         public async Task<IActionResult> GetStatusV2(int id)

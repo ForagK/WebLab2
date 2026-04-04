@@ -2,7 +2,7 @@ using Asp.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using StackExchange.Redis;
-using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
 using WebLab2.DataBase;
 using WebLab2.Hubs;
 using WebLab2.Interfaces;
@@ -64,9 +64,19 @@ builder.Services.AddApiVersioning(options =>
         new UrlSegmentApiVersionReader(),
         new HeaderApiVersionReader("X-Api-Version")
     );
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 }).AddMvc();
 
-builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "v1", Version = "v1" });
+    options.SwaggerDoc("v2", new OpenApiInfo { Title = "v2", Version = "v2" });
+});
+
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -77,12 +87,11 @@ app.MapRazorPages();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapSwagger("/openapi/{documentName}.json");
     app.MapScalarApiReference(options =>
     {
         options.WithTitle("UpTulse API Docs");
         options.WithTheme(ScalarTheme.Mars);
-        options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
     });
 }
 
